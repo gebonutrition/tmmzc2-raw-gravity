@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     }
 
     const cleanEmail = email.trim();
-    const cleanLanding = String(landing || "tmmzc1").trim();
+    const cleanLanding = String(landing || "tmmzc2").trim();
     const sourceRaw = String(source || "meta").trim().toLowerCase();
     const cleanSource = ["tiktok", "meta", "google", "youtube", "dv360"].includes(sourceRaw)
       ? sourceRaw

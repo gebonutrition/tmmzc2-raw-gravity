@@ -345,16 +345,15 @@
       *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
     }
   </style>
-  <!-- Meta Pixel Code -->
-  <script>
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init','1632582321547641');
-    fbq('track','PageView');
-    fbq('track','ViewContent');
-  </script>
-  <!-- End Meta Pixel Code -->
+  <!-- URL-parameter pixels -->
+  <script src="./pixel.js"></script>
+  <script src="./fbpixel.js"></script>
 </head>
 <body>
+  <!-- Meta Pixel noscript fallback -->
+  <noscript>
+    ...
+  </noscript>
   <!-- Meta Pixel noscript fallback -->
   <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1632582321547641&amp;ev=PageView&amp;noscript=1" alt=""></noscript>
   <div class="page-shell">
@@ -401,7 +400,7 @@
             <div class="coupon-card"><div class="coupon-badge coupon-badge--first">25%</div><div class="coupon-copy"><strong>OFF your first order</strong><span>Coupon: 25% off applied to first order.</span></div></div>
             <div class="coupon-card"><div class="coupon-badge coupon-badge--subscribe">10%</div><div class="coupon-copy"><strong>OFF with Subscribe &amp; Save</strong><span>Save 10% now and up to 15% on repeat deliveries.</span></div></div>
           </div>
-          <a class="buy-button buy-on-amazon" href="https://www.amazon.com/dp/B0GTWJ3K1R?maas=maas_adg_F4C7C5F67E362A895EFCE264B192DFE0_afap_abs&amp;ref_=aa_maas&amp;tag=maas">Buy on Amazon</a>
+          <a class="buy-button buy-on-amazon" href="https://www.amazon.com/dp/B0GTWJ3K1R?maas=maas_adg_799ABB226F6E59DBE055DECE8147C7A5_afap_abs&amp;ref_=aa_maas&amp;tag=maas">Buy on Amazon</a>
           <div class="benefits"><span>Money back guaranty</span><span>Fast delivery</span></div>
         </div>
       </section>
@@ -463,7 +462,7 @@
         <div class="aplus__desktop-banners"><img src="assets/banner-brew.png" alt="How to Brew Your Perfect Cup" loading="lazy"><img src="assets/banner-trusted.png" alt="Trusted by Everyday Coffee Lovers" loading="lazy"></div>
         <div class="aplus__mobile-trusted"><img src="assets/slide-4.jpg" alt="Trusted by Everyday Coffee Lovers" loading="lazy"></div>
 
-        <div class="second-cta"><a class="buy-button buy-on-amazon" href="https://www.amazon.com/dp/B0GTWJ3K1R?maas=maas_adg_F4C7C5F67E362A895EFCE264B192DFE0_afap_abs&amp;ref_=aa_maas&amp;tag=maas">Buy on Amazon</a><div class="benefits"><span>Money back guaranty</span><span>Fast delivery</span></div></div>
+        <div class="second-cta"><a class="buy-button buy-on-amazon" href="https://www.amazon.com/dp/B0GTWJ3K1R?maas=maas_adg_799ABB226F6E59DBE055DECE8147C7A5_afap_abs&amp;ref_=aa_maas&amp;tag=maas">Buy on Amazon</a><div class="benefits"><span>Money back guaranty</span><span>Fast delivery</span></div></div>
       </section>
     </main>
 
@@ -488,7 +487,7 @@
   <script>
     (() => {
       'use strict';
-      const amazonUrl = 'https://www.amazon.com/dp/B0GTWJ3K1R?maas=maas_adg_F4C7C5F67E362A895EFCE264B192DFE0_afap_abs&ref_=aa_maas&tag=maas';
+      const amazonUrl = 'https://www.amazon.com/dp/B0GTWJ3K1R?maas=maas_adg_799ABB226F6E59DBE055DECE8147C7A5_afap_abs&ref_=aa_maas&tag=maas';
       const track = document.getElementById('gallery-track');
       const dots = Array.from(document.querySelectorAll('.gallery-dot'));
       const overlay = document.getElementById('redirect-overlay');
@@ -540,7 +539,7 @@
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({
               email: emailInput.value.trim(),
-              landing: 'tmmzc1',
+              landing: 'tmmzc2',
               source: (params.get('source') || 'meta').toLowerCase(),
               creative: params.get('creative') || 'unknown'
             })
@@ -549,7 +548,31 @@
           if (!response.ok || !result.success) throw new Error(result.error || 'Subscription failed');
           form.hidden = true;
           success.hidden = false;
-          try { if (typeof window.fbq === 'function') window.fbq('track', 'Lead'); } catch (_) {}
+
+          // TikTok: fire only after a successful subscription.
+          const pixelId = new URLSearchParams(window.location.search).get("pixel");
+
+          if (pixelId && typeof window.ttq !== "undefined") {
+            window.ttq.instance(pixelId).track("SubmitForm", {
+              content_name: "Coupon Code Revealed"
+            });
+
+            window.ttq.instance(pixelId).track("Contact", {
+              content_type: "promo_code",
+              content_name: "Coupon Code Revealed"
+            });
+          }
+
+          // Meta: fire at the same successful-submission moment.
+          if (typeof window.fbq === "function") {
+            window.fbq("track", "Lead", {
+              content_name: "25% OFF Promo Code",
+              currency: "USD",
+              value: 0
+            });
+
+            window.fbq("track", "Contact");
+          }
         } catch (err) {
           console.error('Newsletter submission failed:', err);
           error.hidden = false;
